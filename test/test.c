@@ -27,7 +27,7 @@
         i32 result = TEST__CONCAT(mod, __test)();                                                  \
         if (result != 0) {                                                                         \
             printf("Test " #mod " FAILED! (Failed line = %d)\n", result);                          \
-            goto failed;                                                                           \
+            test__failed_cnt++;                                                                    \
         }                                                                                          \
     } while (0)
 
@@ -63,13 +63,17 @@
 // PUBLIC FUNCTION DEFINITION
 //==================================================================================================
 i32 main(void) {
+    u32 test__failed_cnt = 0;
+
     TEST__RUN(crypto_aes);
     TEST__RUN(crypto_cmac);
-    printf("All tests passed!\n");
-    return 0;
 
-failed:
-    return -1;
+    if (test__failed_cnt == 0) {
+        printf("All tests passed!\n");
+        return 0;
+    } else {
+        return -1;
+    }
 }
 
 //==================================================================================================
