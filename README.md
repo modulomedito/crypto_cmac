@@ -4,6 +4,16 @@ An implementation of the Cipher-based Message Authentication Code (CMAC) algorit
 conforming to NIST SP 800-38B.
 This library supports AES-128, AES-192, and AES-256 for message authentication.
 
+## How To Use?
+
+Copy all files in the `src` folder to your project, which are:
+
+- crypto_aes.c
+- crypto_aes.h
+- crypto_cmac.c
+- crypto_cmac.h
+- rustlike_types.h
+
 ## Features
 
 - Support for multiple key lengths via `crypto_cmac__KeyLen`.
