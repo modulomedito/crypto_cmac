@@ -50,16 +50,16 @@ typedef struct {
 //==================================================================================================
 // PRIVATE FUNCTION DECLARATION
 //==================================================================================================
-static void crypto_aes__Obj_ecb_encrypt(crypto_aes__Obj* self);
-static void crypto_aes__Obj_ecb_decrypt(crypto_aes__Obj* self, u8* buf_mut);
-static void crypto_aes__Obj_cbc_encrypt(crypto_aes__Obj* self);
-static void crypto_aes__Obj_cbc_decrypt(crypto_aes__Obj* self, u8* buf_mut);
-static void crypto_aes__Obj_ctr_xcrypt(crypto_aes__Obj* self);
-static void crypto_aes__Obj_key_expansion(crypto_aes__Obj* self);
-static void crypto_aes__Obj_cipher(crypto_aes__Obj* self, crypto_aes__State* state_mut);
-static void crypto_aes__Obj_inv_cipher(crypto_aes__Obj* self, crypto_aes__State* state_mut);
-static void crypto_aes__Obj_add_round_key(
-    crypto_aes__Obj* self,
+static void crypto_aes__Handle_ecb_encrypt(crypto_aes__Handle* self);
+static void crypto_aes__Handle_ecb_decrypt(crypto_aes__Handle* self, u8* buf_mut);
+static void crypto_aes__Handle_cbc_encrypt(crypto_aes__Handle* self);
+static void crypto_aes__Handle_cbc_decrypt(crypto_aes__Handle* self, u8* buf_mut);
+static void crypto_aes__Handle_ctr_xcrypt(crypto_aes__Handle* self);
+static void crypto_aes__Handle_key_expansion(crypto_aes__Handle* self);
+static void crypto_aes__Handle_cipher(crypto_aes__Handle* self, crypto_aes__State* state_mut);
+static void crypto_aes__Handle_inv_cipher(crypto_aes__Handle* self, crypto_aes__State* state_mut);
+static void crypto_aes__Handle_add_round_key(
+    crypto_aes__Handle* self,
     u32 round,
     crypto_aes__State* state_mut
 );
@@ -136,9 +136,9 @@ i32 crypto_aes__encrypt(
     const u8* iv_ref,
     u8* out_mut
 ) {
-    crypto_aes__Obj obj;
-    i32 ret = crypto_aes__Obj_init(
-        &obj,
+    crypto_aes__Handle handle;
+    i32 ret = crypto_aes__Handle_init(
+        &handle,
         keylen,
         mode,
         crypto_aes__Direction_Encrypt,
@@ -150,12 +150,12 @@ i32 crypto_aes__encrypt(
         return ret;
     }
 
-    ret = crypto_aes__Obj_update(&obj, in_ref, in_len);
+    ret = crypto_aes__Handle_update(&handle, in_ref, in_len);
     if (ret != 0) {
         return ret;
     }
 
-    return crypto_aes__Obj_finalize(&obj, NULL, NULL);
+    return crypto_aes__Handle_finalize(&handle, NULL, NULL);
 }
 
 /// For synchronous decrypt, decrypt data at once
@@ -168,9 +168,9 @@ i32 crypto_aes__decrypt(
     const u8* iv_ref,
     u8* out_mut
 ) {
-    crypto_aes__Obj obj;
-    i32 ret = crypto_aes__Obj_init(
-        &obj,
+    crypto_aes__Handle handle;
+    i32 ret = crypto_aes__Handle_init(
+        &handle,
         keylen,
         mode,
         crypto_aes__Direction_Decrypt,
@@ -182,17 +182,17 @@ i32 crypto_aes__decrypt(
         return ret;
     }
 
-    ret = crypto_aes__Obj_update(&obj, in_ref, in_len);
+    ret = crypto_aes__Handle_update(&handle, in_ref, in_len);
     if (ret != 0) {
         return ret;
     }
 
-    return crypto_aes__Obj_finalize(&obj, NULL, NULL);
+    return crypto_aes__Handle_finalize(&handle, NULL, NULL);
 }
 
-/// For asynchronous encrypt/decrypt, init object of class crypto_aes__Obj
-i32 crypto_aes__Obj_init(
-    crypto_aes__Obj* self,
+/// For asynchronous encrypt/decrypt, init instance of class crypto_aes__Handle
+i32 crypto_aes__Handle_init(
+    crypto_aes__Handle* self,
     crypto_aes__KeyLen keylen,
     crypto_aes__Mode mode,
     crypto_aes__Direction dir,
@@ -250,13 +250,13 @@ i32 crypto_aes__Obj_init(
         return -1;
     }
 
-    crypto_aes__Obj_key_expansion(self);
+    crypto_aes__Handle_key_expansion(self);
 
     return 0;
 }
 
 /// For asynchronous encrypt/decrypt, update input data
-i32 crypto_aes__Obj_update(crypto_aes__Obj* self, const u8* in_ref, u32 in_len) {
+i32 crypto_aes__Handle_update(crypto_aes__Handle* self, const u8* in_ref, u32 in_len) {
     u32 in_pos = 0;
 
     if (self == NULL || in_ref == NULL || self->out_mut == NULL) {
@@ -275,9 +275,9 @@ i32 crypto_aes__Obj_update(crypto_aes__Obj* self, const u8* in_ref, u32 in_len) 
                 if (self->buf_len == CRYPTO_AES__BLOCK_U8_SIZE) {
                     memcpy(self->out_mut, self->buf, CRYPTO_AES__BLOCK_U8_SIZE);
                     if (self->mode == crypto_aes__Mode_Ecb) {
-                        crypto_aes__Obj_ecb_decrypt(self, self->out_mut);
+                        crypto_aes__Handle_ecb_decrypt(self, self->out_mut);
                     } else {
-                        crypto_aes__Obj_cbc_decrypt(self, self->out_mut);
+                        crypto_aes__Handle_cbc_decrypt(self, self->out_mut);
                     }
                     self->out_mut += CRYPTO_AES__BLOCK_U8_SIZE;
                     self->result_len += CRYPTO_AES__BLOCK_U8_SIZE;
@@ -302,11 +302,11 @@ i32 crypto_aes__Obj_update(crypto_aes__Obj* self, const u8* in_ref, u32 in_len) 
 
             memcpy(self->out_mut, self->buf, CRYPTO_AES__BLOCK_U8_SIZE);
             if (self->mode == crypto_aes__Mode_Ecb) {
-                crypto_aes__Obj_ecb_encrypt(self);
+                crypto_aes__Handle_ecb_encrypt(self);
             } else if (self->mode == crypto_aes__Mode_Cbc) {
-                crypto_aes__Obj_cbc_encrypt(self);
+                crypto_aes__Handle_cbc_encrypt(self);
             } else if (self->mode == crypto_aes__Mode_Ctr) {
-                crypto_aes__Obj_ctr_xcrypt(self);
+                crypto_aes__Handle_ctr_xcrypt(self);
             }
             self->out_mut += CRYPTO_AES__BLOCK_U8_SIZE;
             self->result_len += CRYPTO_AES__BLOCK_U8_SIZE;
@@ -318,7 +318,11 @@ i32 crypto_aes__Obj_update(crypto_aes__Obj* self, const u8* in_ref, u32 in_len) 
 }
 
 /// For asynchronous encrypt/decrypt, finalize the encrypt/decrypt output
-i32 crypto_aes__Obj_finalize(crypto_aes__Obj* self, u8** result_buf_mut, u32* result_len_mut) {
+i32 crypto_aes__Handle_finalize(
+    crypto_aes__Handle* self,
+    u8** result_buf_mut,
+    u32* result_len_mut
+) {
     if (self == NULL) {
         return -1;
     }
@@ -333,9 +337,9 @@ i32 crypto_aes__Obj_finalize(crypto_aes__Obj* self, u8** result_buf_mut, u32* re
                 memset(self->buf + self->buf_len, pad_val, pad_val);
                 memcpy(self->out_mut, self->buf, CRYPTO_AES__BLOCK_U8_SIZE);
                 if (self->mode == crypto_aes__Mode_Ecb) {
-                    crypto_aes__Obj_ecb_encrypt(self);
+                    crypto_aes__Handle_ecb_encrypt(self);
                 } else {
-                    crypto_aes__Obj_cbc_encrypt(self);
+                    crypto_aes__Handle_cbc_encrypt(self);
                 }
                 self->out_mut += CRYPTO_AES__BLOCK_U8_SIZE;
                 self->result_len += CRYPTO_AES__BLOCK_U8_SIZE;
@@ -350,9 +354,9 @@ i32 crypto_aes__Obj_finalize(crypto_aes__Obj* self, u8** result_buf_mut, u32* re
                 u8 temp[CRYPTO_AES__BLOCK_U8_SIZE];
                 memcpy(temp, self->buf, CRYPTO_AES__BLOCK_U8_SIZE);
                 if (self->mode == crypto_aes__Mode_Ecb) {
-                    crypto_aes__Obj_ecb_decrypt(self, temp);
+                    crypto_aes__Handle_ecb_decrypt(self, temp);
                 } else {
-                    crypto_aes__Obj_cbc_decrypt(self, temp);
+                    crypto_aes__Handle_cbc_decrypt(self, temp);
                 }
 
                 u8 pad_val = temp[CRYPTO_AES__BLOCK_U8_SIZE - 1];
@@ -381,7 +385,7 @@ i32 crypto_aes__Obj_finalize(crypto_aes__Obj* self, u8** result_buf_mut, u32* re
     } else if (self->mode == crypto_aes__Mode_Ctr) {
         if (self->buf_len > 0) {
             memcpy(self->out_mut, self->buf, self->buf_len);
-            crypto_aes__Obj_ctr_xcrypt(self);
+            crypto_aes__Handle_ctr_xcrypt(self);
             self->out_mut += self->buf_len;
             self->result_len += self->buf_len;
         }
@@ -396,52 +400,52 @@ i32 crypto_aes__Obj_finalize(crypto_aes__Obj* self, u8** result_buf_mut, u32* re
 
 cleanup:
     // Securely wipe sensitive key material and internal state from memory
-    memset(self, 0, sizeof(crypto_aes__Obj));
+    memset(self, 0, sizeof(crypto_aes__Handle));
     return ret;
 }
 
 //==================================================================================================
 // PRIVATE FUNCTION DEFINITION
 //==================================================================================================
-static void crypto_aes__Obj_ecb_encrypt(crypto_aes__Obj* self) {
-    crypto_aes__Obj_cipher(self, (crypto_aes__State*)self->out_mut);
+static void crypto_aes__Handle_ecb_encrypt(crypto_aes__Handle* self) {
+    crypto_aes__Handle_cipher(self, (crypto_aes__State*)self->out_mut);
 }
 
-static void crypto_aes__Obj_ecb_decrypt(crypto_aes__Obj* self, u8* buf_mut) {
-    crypto_aes__Obj_inv_cipher(self, (crypto_aes__State*)buf_mut);
+static void crypto_aes__Handle_ecb_decrypt(crypto_aes__Handle* self, u8* buf_mut) {
+    crypto_aes__Handle_inv_cipher(self, (crypto_aes__State*)buf_mut);
 }
 
-static void crypto_aes__Obj_cbc_encrypt(crypto_aes__Obj* self) {
+static void crypto_aes__Handle_cbc_encrypt(crypto_aes__Handle* self) {
     u8* buf_mut = self->out_mut;
     u8* iv_mut = self->ctx.iv_buf;
 
     crypto_aes__xor_with_iv(buf_mut, iv_mut);
-    crypto_aes__Obj_cipher(self, (crypto_aes__State*)buf_mut);
+    crypto_aes__Handle_cipher(self, (crypto_aes__State*)buf_mut);
     iv_mut = buf_mut;
 
     memcpy(self->ctx.iv_buf, iv_mut, CRYPTO_AES__BLOCK_U8_SIZE);
 }
 
-static void crypto_aes__Obj_cbc_decrypt(crypto_aes__Obj* self, u8* buf_mut) {
+static void crypto_aes__Handle_cbc_decrypt(crypto_aes__Handle* self, u8* buf_mut) {
     u32 i;
     u8 store_next_iv_buf[CRYPTO_AES__BLOCK_U8_SIZE];
     for (i = 0; i < self->buf_len; i += CRYPTO_AES__BLOCK_U8_SIZE) {
         memcpy(store_next_iv_buf, buf_mut, CRYPTO_AES__BLOCK_U8_SIZE);
-        crypto_aes__Obj_inv_cipher(self, (crypto_aes__State*)buf_mut);
+        crypto_aes__Handle_inv_cipher(self, (crypto_aes__State*)buf_mut);
         crypto_aes__xor_with_iv(buf_mut, self->ctx.iv_buf);
         memcpy(self->ctx.iv_buf, store_next_iv_buf, CRYPTO_AES__BLOCK_U8_SIZE);
         buf_mut += CRYPTO_AES__BLOCK_U8_SIZE;
     }
 }
 
-static void crypto_aes__Obj_ctr_xcrypt(crypto_aes__Obj* self) {
+static void crypto_aes__Handle_ctr_xcrypt(crypto_aes__Handle* self) {
     u8 keystream[CRYPTO_AES__BLOCK_U8_SIZE];
     u32 i = 0;
 
     while (i < self->buf_len) {
         // Generate a new block of keystream
         memcpy(keystream, self->ctx.iv_buf, CRYPTO_AES__BLOCK_U8_SIZE);
-        crypto_aes__Obj_cipher(self, (crypto_aes__State*)keystream);
+        crypto_aes__Handle_cipher(self, (crypto_aes__State*)keystream);
 
         // Increment the IV (Counter) for the next block
         for (i32 j = CRYPTO_AES__BLOCK_U8_SIZE - 1; j >= 0; j--) {
@@ -462,8 +466,8 @@ static void crypto_aes__Obj_ctr_xcrypt(crypto_aes__Obj* self) {
     }
 }
 
-static void crypto_aes__Obj_add_round_key(
-    crypto_aes__Obj* self,
+static void crypto_aes__Handle_add_round_key(
+    crypto_aes__Handle* self,
     u32 round,
     crypto_aes__State* state_mut
 ) {
@@ -475,43 +479,43 @@ static void crypto_aes__Obj_add_round_key(
     }
 }
 
-static void crypto_aes__Obj_cipher(crypto_aes__Obj* self, crypto_aes__State* state_mut) {
+static void crypto_aes__Handle_cipher(crypto_aes__Handle* self, crypto_aes__State* state_mut) {
     // Initial round: Add the first round key
-    crypto_aes__Obj_add_round_key(self, 0, state_mut);
+    crypto_aes__Handle_add_round_key(self, 0, state_mut);
 
     // Main rounds: SubBytes, ShiftRows, MixColumns, AddRoundKey
     for (u8 round = 1; round < self->round_num; round++) {
         crypto_aes__sub_bytes(state_mut);
         crypto_aes__shift_rows(state_mut);
         crypto_aes__mix_columns(state_mut);
-        crypto_aes__Obj_add_round_key(self, round, state_mut);
+        crypto_aes__Handle_add_round_key(self, round, state_mut);
     }
 
     // Final round: SubBytes, ShiftRows, AddRoundKey (No MixColumns)
     crypto_aes__sub_bytes(state_mut);
     crypto_aes__shift_rows(state_mut);
-    crypto_aes__Obj_add_round_key(self, self->round_num, state_mut);
+    crypto_aes__Handle_add_round_key(self, self->round_num, state_mut);
 }
 
-static void crypto_aes__Obj_inv_cipher(crypto_aes__Obj* self, crypto_aes__State* state_mut) {
+static void crypto_aes__Handle_inv_cipher(crypto_aes__Handle* self, crypto_aes__State* state_mut) {
     // Initial round: Add the last round key
-    crypto_aes__Obj_add_round_key(self, self->round_num, state_mut);
+    crypto_aes__Handle_add_round_key(self, self->round_num, state_mut);
 
     // Main rounds: InvShiftRows, InvSubBytes, AddRoundKey, InvMixColumns
     for (u8 round = (self->round_num - 1); round > 0; round--) {
         crypto_aes__inv_shift_rows(state_mut);
         crypto_aes__inv_sub_bytes(state_mut);
-        crypto_aes__Obj_add_round_key(self, round, state_mut);
+        crypto_aes__Handle_add_round_key(self, round, state_mut);
         crypto_aes__inv_mix_columns(state_mut);
     }
 
     // Final round: InvShiftRows, InvSubBytes, AddRoundKey (No InvMixColumns)
     crypto_aes__inv_shift_rows(state_mut);
     crypto_aes__inv_sub_bytes(state_mut);
-    crypto_aes__Obj_add_round_key(self, 0, state_mut);
+    crypto_aes__Handle_add_round_key(self, 0, state_mut);
 }
 
-static void crypto_aes__Obj_key_expansion(crypto_aes__Obj* self) {
+static void crypto_aes__Handle_key_expansion(crypto_aes__Handle* self) {
     u32 i, j, k;
     u8 temp_word[4];
     u8* round_key_mut = self->ctx.round_key_buf;
@@ -1014,10 +1018,10 @@ static i32 crypto_aes__test_tc7(void) {
     };
     // clang-format on
 
-    crypto_aes__Obj aes_obj;
+    crypto_aes__Handle aes_handle;
 
-    crypto_aes__Obj_init(
-        &aes_obj,
+    crypto_aes__Handle_init(
+        &aes_handle,
         crypto_aes__KeyLen_128,
         crypto_aes__Mode_Ecb,
         crypto_aes__Direction_Encrypt,
@@ -1026,18 +1030,18 @@ static i32 crypto_aes__test_tc7(void) {
         cipher_buf
     );
 
-    crypto_aes__Obj_update(&aes_obj, &plain_buf[0x00], 8);
-    crypto_aes__Obj_update(&aes_obj, &plain_buf[0x08], 8);
-    crypto_aes__Obj_update(&aes_obj, &plain_buf[0x10], 8);
-    crypto_aes__Obj_update(&aes_obj, &plain_buf[0x18], 8);
-    crypto_aes__Obj_update(&aes_obj, &plain_buf[0x20], 8);
-    crypto_aes__Obj_update(&aes_obj, &plain_buf[0x28], 8);
-    crypto_aes__Obj_update(&aes_obj, &plain_buf[0x30], 8);
-    crypto_aes__Obj_update(&aes_obj, &plain_buf[0x38], 8);
+    crypto_aes__Handle_update(&aes_handle, &plain_buf[0x00], 8);
+    crypto_aes__Handle_update(&aes_handle, &plain_buf[0x08], 8);
+    crypto_aes__Handle_update(&aes_handle, &plain_buf[0x10], 8);
+    crypto_aes__Handle_update(&aes_handle, &plain_buf[0x18], 8);
+    crypto_aes__Handle_update(&aes_handle, &plain_buf[0x20], 8);
+    crypto_aes__Handle_update(&aes_handle, &plain_buf[0x28], 8);
+    crypto_aes__Handle_update(&aes_handle, &plain_buf[0x30], 8);
+    crypto_aes__Handle_update(&aes_handle, &plain_buf[0x38], 8);
 
     u8* result_buf_mut;
     u32 result_len;
-    crypto_aes__Obj_finalize(&aes_obj, &result_buf_mut, &result_len);
+    crypto_aes__Handle_finalize(&aes_handle, &result_buf_mut, &result_len);
 
     if (result_len != 64) {
         return __LINE__;

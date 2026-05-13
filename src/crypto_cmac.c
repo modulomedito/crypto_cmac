@@ -18,7 +18,7 @@
 #if !defined(CRYPTO_AES__MAJOR_VERSION) || (CRYPTO_AES__MAJOR_VERSION != 0)
 #error "CRYPTO_AES__MAJOR_VERSION is not match."
 #endif
-#if !defined(CRYPTO_AES__MINOR_VERSION) || (CRYPTO_AES__MINOR_VERSION != 1)
+#if !defined(CRYPTO_AES__MINOR_VERSION) || (CRYPTO_AES__MINOR_VERSION != 2)
 #error "CRYPTO_AES__MINOR_VERSION is not match."
 #endif
 #if !defined(CRYPTO_AES__PATCH_VERSION)
@@ -48,7 +48,7 @@
 //==================================================================================================
 // PRIVATE FUNCTION DECLARATION
 //==================================================================================================
-static i32 crypto_cmac__Obj_generate_subkeys(crypto_cmac__Obj* self);
+static i32 crypto_cmac__Handle_generate_subkeys(crypto_cmac__Handle* self);
 static void crypto_cmac__leftshift(const u8* in_ref, u8* out_mut);
 
 //==================================================================================================
@@ -77,22 +77,26 @@ i32 crypto_cmac__compute(
     const u8* key_ref,
     u8* mac_mut
 ) {
-    crypto_cmac__Obj obj;
+    crypto_cmac__Handle handle;
 
-    if (crypto_cmac__Obj_init(&obj, key_len, key_ref) < 0) {
+    if (crypto_cmac__Handle_init(&handle, key_len, key_ref) < 0) {
         return -1;
     }
-    if (crypto_cmac__Obj_update(&obj, data_ref, data_len) < 0) {
+    if (crypto_cmac__Handle_update(&handle, data_ref, data_len) < 0) {
         return -1;
     }
-    if (crypto_cmac__Obj_finalize(&obj, mac_mut) < 0) {
+    if (crypto_cmac__Handle_finalize(&handle, mac_mut) < 0) {
         return -1;
     }
 
     return 0;
 }
 
-i32 crypto_cmac__Obj_init(crypto_cmac__Obj* self, crypto_cmac__KeyLen key_len, const u8* key_ref) {
+i32 crypto_cmac__Handle_init(
+    crypto_cmac__Handle* self,
+    crypto_cmac__KeyLen key_len,
+    const u8* key_ref
+) {
     if (key_ref == NULL) {
         return -1;
     }
@@ -116,12 +120,12 @@ i32 crypto_cmac__Obj_init(crypto_cmac__Obj* self, crypto_cmac__KeyLen key_len, c
         return -1;
     }
 
-    crypto_cmac__Obj_generate_subkeys(self);
+    crypto_cmac__Handle_generate_subkeys(self);
 
     return 0;
 }
 
-i32 crypto_cmac__Obj_update(crypto_cmac__Obj* self, const u8* data_ref, u32 len) {
+i32 crypto_cmac__Handle_update(crypto_cmac__Handle* self, const u8* data_ref, u32 len) {
     if (data_ref == NULL) {
         return -1;
     }
@@ -184,7 +188,7 @@ i32 crypto_cmac__Obj_update(crypto_cmac__Obj* self, const u8* data_ref, u32 len)
     return 0;
 }
 
-i32 crypto_cmac__Obj_finalize(crypto_cmac__Obj* self, u8* mac_mut) {
+i32 crypto_cmac__Handle_finalize(crypto_cmac__Handle* self, u8* mac_mut) {
     if (mac_mut == NULL) {
         return -1;
     }
@@ -244,7 +248,7 @@ i32 crypto_cmac__Obj_finalize(crypto_cmac__Obj* self, u8* mac_mut) {
 //==================================================================================================
 // PRIVATE FUNCTION DEFINITION
 //==================================================================================================
-static i32 crypto_cmac__Obj_generate_subkeys(crypto_cmac__Obj* self) {
+static i32 crypto_cmac__Handle_generate_subkeys(crypto_cmac__Handle* self) {
     u8 temp_buf[CRYPTO_CMAC__AES_BLOCK_SIZE];
     u32 i;
 

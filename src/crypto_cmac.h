@@ -27,8 +27,8 @@ extern "C" {
 // PUBLIC DEFINE
 //==================================================================================================
 #define CRYPTO_CMAC__MAJOR_VERSION (0)
-#define CRYPTO_CMAC__MINOR_VERSION (1)
-#define CRYPTO_CMAC__PATCH_VERSION (1)
+#define CRYPTO_CMAC__MINOR_VERSION (2)
+#define CRYPTO_CMAC__PATCH_VERSION (0)
 
 // Fixed constant
 #define CRYPTO_CMAC__AES_BLOCK_SIZE (16)
@@ -62,7 +62,7 @@ typedef struct {
 typedef struct {
     crypto_cmac__KeyLen key_len;
     crypto_cmac__Ctx ctx;
-} crypto_cmac__Obj;
+} crypto_cmac__Handle;
 
 //==================================================================================================
 // PUBLIC UNION
@@ -83,13 +83,13 @@ extern i32 crypto_cmac__compute(
     u8* mac_mut
 );
 
-extern i32 crypto_cmac__Obj_init(
-    crypto_cmac__Obj* self,
+extern i32 crypto_cmac__Handle_init(
+    crypto_cmac__Handle* self,
     crypto_cmac__KeyLen key_len,
     const u8* key_ref
 );
-extern i32 crypto_cmac__Obj_update(crypto_cmac__Obj* self, const u8* data_ref, u32 len);
-extern i32 crypto_cmac__Obj_finalize(crypto_cmac__Obj* self, u8* mac_mut);
+extern i32 crypto_cmac__Handle_update(crypto_cmac__Handle* self, const u8* data_ref, u32 len);
+extern i32 crypto_cmac__Handle_finalize(crypto_cmac__Handle* self, u8* mac_mut);
 
 //==================================================================================================
 // GUARD END

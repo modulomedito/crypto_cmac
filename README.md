@@ -37,9 +37,9 @@ i32 crypto_cmac__compute(
 
 ### Streaming API
 
-- `crypto_cmac__Obj_init`: Initialize the CMAC object with the secret key and length.
-- `crypto_cmac__Obj_update`: Process chunks of data incrementally.
-- `crypto_cmac__Obj_finalize`: Complete the calculation and retrieve the MAC tag.
+- `crypto_cmac__Handle_init`: Initialize the CMAC object with the secret key and length.
+- `crypto_cmac__Handle_update`: Process chunks of data incrementally.
+- `crypto_cmac__Handle_finalize`: Complete the calculation and retrieve the MAC tag.
 
 ## Usage Example
 
@@ -54,10 +54,10 @@ u8 cmac_buf[16];
 crypto_cmac__compute(crypto_cmac__KeyLen_128, data_buf, sizeof(data_buf), key_buf, cmac_buf);
 
 // Or Streaming
-crypto_cmac__Obj obj;
-crypto_cmac__Obj_init(&obj, crypto_cmac__KeyLen_128, key_buf);
-crypto_cmac__Obj_update(&obj, data_buf, sizeof(data_buf));
-crypto_cmac__Obj_finalize(&obj, cmac_buf);
+crypto_cmac__Handle handle;
+crypto_cmac__Handle_init(&handle, crypto_cmac__KeyLen_128, key_buf);
+crypto_cmac__Handle_update(&handle, data_buf, sizeof(data_buf));
+crypto_cmac__Handle_finalize(&handle, cmac_buf);
 ```
 
 ## Testing

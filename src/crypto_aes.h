@@ -27,8 +27,8 @@ extern "C" {
 // PUBLIC DEFINE
 //==================================================================================================
 #define CRYPTO_AES__MAJOR_VERSION (0)
-#define CRYPTO_AES__MINOR_VERSION (1)
-#define CRYPTO_AES__PATCH_VERSION (1)
+#define CRYPTO_AES__MINOR_VERSION (2)
+#define CRYPTO_AES__PATCH_VERSION (0)
 
 /// Block length in bytes - AES is 128b block only
 #define CRYPTO_AES__BLOCK_U8_SIZE (16)
@@ -79,7 +79,7 @@ typedef struct {
     u8* result_buf;
     u32 result_len;
     u8 buf[CRYPTO_AES__BLOCK_U8_SIZE];
-} crypto_aes__Obj;
+} crypto_aes__Handle;
 
 //==================================================================================================
 // PUBLIC UNION
@@ -111,8 +111,8 @@ extern i32 crypto_aes__decrypt(
     u8* out_mut
 );
 
-extern i32 crypto_aes__Obj_init(
-    crypto_aes__Obj* self,
+extern i32 crypto_aes__Handle_init(
+    crypto_aes__Handle* self,
     crypto_aes__KeyLen keylen,
     crypto_aes__Mode mode,
     crypto_aes__Direction dir,
@@ -120,9 +120,9 @@ extern i32 crypto_aes__Obj_init(
     const u8* iv_ref,
     u8* out_mut
 );
-extern i32 crypto_aes__Obj_update(crypto_aes__Obj* self, const u8* in_ref, u32 in_len);
-extern i32 crypto_aes__Obj_finalize(
-    crypto_aes__Obj* self,
+extern i32 crypto_aes__Handle_update(crypto_aes__Handle* self, const u8* in_ref, u32 in_len);
+extern i32 crypto_aes__Handle_finalize(
+    crypto_aes__Handle* self,
     u8** result_buf_mut,
     u32* result_len_mut
 );
