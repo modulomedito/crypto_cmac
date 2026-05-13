@@ -60,7 +60,7 @@ static void crypto_aes__Obj_cipher(crypto_aes__Obj* self, crypto_aes__State* sta
 static void crypto_aes__Obj_inv_cipher(crypto_aes__Obj* self, crypto_aes__State* state_mut);
 static void crypto_aes__Obj_add_round_key(
     crypto_aes__Obj* self,
-    u8 round,
+    u32 round,
     crypto_aes__State* state_mut
 );
 
@@ -464,7 +464,7 @@ static void crypto_aes__Obj_ctr_xcrypt(crypto_aes__Obj* self) {
 
 static void crypto_aes__Obj_add_round_key(
     crypto_aes__Obj* self,
-    u8 round,
+    u32 round,
     crypto_aes__State* state_mut
 ) {
     u8 i, j;
@@ -1053,43 +1053,43 @@ static i32 crypto_aes__test_tc7(void) {
 i32 crypto_aes__test(void) {
     i32 result;
 
-    /// Test AES128 ECB encrypt synchornously
+    /// Test AES128 ECB encrypt synchronously
     result = crypto_aes__test_tc1();
     if (result != 0) {
         return result;
     }
 
-    /// Test AES128 ECB decrypt synchornously
+    /// Test AES128 ECB decrypt synchronously
     result = crypto_aes__test_tc2();
     if (result != 0) {
         return result;
     }
 
-    /// Test AES192 ECB encrypt synchornously
+    /// Test AES192 ECB encrypt synchronously
     result = crypto_aes__test_tc3();
     if (result != 0) {
         return result;
     }
 
-    /// Test AES192 ECB decrypt synchornously
+    /// Test AES192 ECB decrypt synchronously
     result = crypto_aes__test_tc4();
     if (result != 0) {
         return result;
     }
 
-    /// Test AES256 ECB encrypt synchornously
+    /// Test AES256 ECB encrypt synchronously
     result = crypto_aes__test_tc5();
     if (result != 0) {
         return result;
     }
 
-    /// Test AES256 ECB decrypt synchornously
+    /// Test AES256 ECB decrypt synchronously
     result = crypto_aes__test_tc6();
     if (result != 0) {
         return result;
     }
 
-    /// Test AES128 ECB encrypt asynchornously
+    /// Test AES128 ECB encrypt asynchronously
     result = crypto_aes__test_tc7();
     if (result != 0) {
         return result;

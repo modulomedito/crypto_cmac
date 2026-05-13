@@ -28,7 +28,7 @@ extern "C" {
 //==================================================================================================
 #define CRYPTO_CMAC__MAJOR_VERSION (0)
 #define CRYPTO_CMAC__MINOR_VERSION (1)
-#define CRYPTO_CMAC__PATCH_VERSION (0)
+#define CRYPTO_CMAC__PATCH_VERSION (1)
 
 // Fixed constant
 #define CRYPTO_CMAC__AES_BLOCK_SIZE (16)

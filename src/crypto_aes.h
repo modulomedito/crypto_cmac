@@ -28,7 +28,7 @@ extern "C" {
 //==================================================================================================
 #define CRYPTO_AES__MAJOR_VERSION (0)
 #define CRYPTO_AES__MINOR_VERSION (1)
-#define CRYPTO_AES__PATCH_VERSION (0)
+#define CRYPTO_AES__PATCH_VERSION (1)
 
 /// Block length in bytes - AES is 128b block only
 #define CRYPTO_AES__BLOCK_U8_SIZE (16)

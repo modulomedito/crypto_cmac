@@ -22,8 +22,8 @@
 #if !defined(CRYPTO_AES__MINOR_VERSION) || (CRYPTO_AES__MINOR_VERSION != 1)
 #error "CRYPTO_AES__MINOR_VERSION is not match."
 #endif
-#if !defined(CRYPTO_AES__PATCH_VERSION) || (CRYPTO_AES__PATCH_VERSION != 0)
-#error "CRYPTO_AES__PATCH_VERSION is not match."
+#if !defined(CRYPTO_AES__PATCH_VERSION)
+#error "CRYPTO_AES__PATCH_VERSION is not defined."
 #endif
 
 //==================================================================================================
