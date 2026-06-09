@@ -263,11 +263,11 @@ crypto_aes_Ret crypto_aes_Handle_update(crypto_aes_Handle *self, const u8 *in_re
     u32 in_pos = 0;
 
     if (self == NULL || in_ref == NULL || self->result_mut == NULL) {
-        return -1;
+        return crypto_aes_Ret_InvalidArg;
     }
 
     if (in_len == 0) {
-        return 0;
+        return crypto_aes_Ret_Ok;
     }
 
     while (in_pos < in_len) {
@@ -317,7 +317,7 @@ crypto_aes_Ret crypto_aes_Handle_update(crypto_aes_Handle *self, const u8 *in_re
         }
     }
 
-    return 0;
+    return crypto_aes_Ret_Ok;
 }
 
 /// For asynchronous encrypt/decrypt, finalize the encrypt/decrypt output

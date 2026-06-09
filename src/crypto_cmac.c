@@ -48,8 +48,8 @@
 //==================================================================================================
 // PRIVATE FUNCTION DECLARATION
 //==================================================================================================
-static crypto_cmac_Ret crypto_cmac_Handle_generate_subkeys(crypto_cmac_Handle* self);
-static void crypto_cmac_leftshift(const u8* in_ref, u8* out_mut);
+static crypto_cmac_Ret crypto_cmac_Handle_generate_subkeys(crypto_cmac_Handle *self);
+static void crypto_cmac_leftshift(const u8 *in_ref, u8 *out_mut);
 
 //==================================================================================================
 // PRIVATE VARIABLE DEFINITION
@@ -72,10 +72,10 @@ static const u8 crypto_cmac_zero_buf[CRYPTO_CMAC_AES_BLOCK_SIZE] = {0};
 /// For synchronously compute the CMAC of a piece of data
 crypto_cmac_Ret crypto_cmac_compute(
     crypto_cmac_KeyLen key_len,
-    const u8* data_ref,
+    const u8 *data_ref,
     u32 data_len,
-    const u8* key_ref,
-    u8* mac_mut,
+    const u8 *key_ref,
+    u8 *mac_mut,
     u32 mac_buf_size
 ) {
     crypto_cmac_Handle handle;
@@ -100,12 +100,12 @@ crypto_cmac_Ret crypto_cmac_compute(
 }
 
 crypto_cmac_Ret crypto_cmac_Handle_init(
-    crypto_cmac_Handle* self,
+    crypto_cmac_Handle *self,
     crypto_cmac_KeyLen key_len,
-    const u8* key_ref
+    const u8 *key_ref
 ) {
-    if (key_ref == NULL) {
-        return -1;
+    if ((self == NULL) || (key_ref == NULL)) {
+        return crypto_cmac_Ret_InvalidArg;
     }
 
     memset(self, 0, sizeof(crypto_cmac_Handle));
@@ -124,20 +124,20 @@ crypto_cmac_Ret crypto_cmac_Handle_init(
         memcpy(self->key_buf, key_ref, 256 / 8);
         break;
     default:
-        return -1;
+        return crypto_cmac_Ret_InvalidArg;
     }
 
     crypto_cmac_Handle_generate_subkeys(self);
 
-    return 0;
+    return crypto_cmac_Ret_Ok;
 }
 
-crypto_cmac_Ret crypto_cmac_Handle_update(crypto_cmac_Handle* self, const u8* data_ref, u32 len) {
-    if (data_ref == NULL) {
-        return -1;
+crypto_cmac_Ret crypto_cmac_Handle_update(crypto_cmac_Handle *self, const u8 *data_ref, u32 len) {
+    if ((self == NULL) || (data_ref == NULL)) {
+        return crypto_cmac_Ret_InvalidArg;
     }
     if (len == 0) {
-        return 0;
+        return crypto_cmac_Ret_Ok;
     }
 
     crypto_aes_KeyLen aes_key_len;
@@ -153,7 +153,7 @@ crypto_cmac_Ret crypto_cmac_Handle_update(crypto_cmac_Handle* self, const u8* da
         aes_key_len = crypto_aes_KeyLen_256;
         break;
     default:
-        return -1;
+        return crypto_cmac_Ret_InvalidArg;
     }
 
     u32 i;
@@ -193,12 +193,12 @@ crypto_cmac_Ret crypto_cmac_Handle_update(crypto_cmac_Handle* self, const u8* da
         }
     }
 
-    return 0;
+    return crypto_cmac_Ret_Ok;
 }
 
 crypto_cmac_Ret crypto_cmac_Handle_finalize(
-    crypto_cmac_Handle* self,
-    u8* mac_mut,
+    crypto_cmac_Handle *self,
+    u8 *mac_mut,
     u32 mac_buf_size
 ) {
     if ((self == NULL) || (mac_mut == NULL) || (mac_buf_size == 0)) {
@@ -255,13 +255,22 @@ crypto_cmac_Ret crypto_cmac_Handle_finalize(
         mac_buf_size
     );
 
-    return crypto_cmac_Ret_Ok;
+    switch (ret) {
+    case crypto_aes_Ret_InvalidArg:
+        return crypto_cmac_Ret_InvalidArg;
+    case crypto_aes_Ret_BufferTooSmall:
+        return crypto_cmac_Ret_BufferTooSmall;
+    case crypto_aes_Ret_CipherTextNotAligned:
+        return crypto_cmac_Ret_Error;
+    default:
+        return crypto_cmac_Ret_Ok;
+    }
 }
 
 //==================================================================================================
 // PRIVATE FUNCTION DEFINITION
 //==================================================================================================
-static crypto_cmac_Ret crypto_cmac_Handle_generate_subkeys(crypto_cmac_Handle* self) {
+static crypto_cmac_Ret crypto_cmac_Handle_generate_subkeys(crypto_cmac_Handle *self) {
     u8 temp_buf[CRYPTO_CMAC_AES_BLOCK_SIZE];
     u32 i;
 
@@ -310,7 +319,7 @@ static crypto_cmac_Ret crypto_cmac_Handle_generate_subkeys(crypto_cmac_Handle* s
     return crypto_cmac_Ret_Ok;
 }
 
-static void crypto_cmac_leftshift(const u8* in_ref, u8* out_mut) {
+static void crypto_cmac_leftshift(const u8 *in_ref, u8 *out_mut) {
     u8 overflow = 0;
     i32 i;
 
@@ -324,7 +333,7 @@ static void crypto_cmac_leftshift(const u8* in_ref, u8* out_mut) {
 // TEST
 //==================================================================================================
 // Binary-safe memcmp for test assertions (not string, not flagged by MISRA string checkers)
-static inline i32 crypto_cmac_memcmp(const u8* a_ref, const u8* b_ref, u32 len) {
+static inline i32 crypto_cmac_memcmp(const u8 *a_ref, const u8 *b_ref, u32 len) {
     for (u32 i = 0; i < len; i++) {
         if (a_ref[i] != b_ref[i]) {
             return (i32)(a_ref[i] - b_ref[i]);

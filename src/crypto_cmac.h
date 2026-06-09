@@ -28,7 +28,7 @@ extern "C" {
 //==================================================================================================
 #define CRYPTO_CMAC_MAJOR_VERSION (0)
 #define CRYPTO_CMAC_MINOR_VERSION (3)
-#define CRYPTO_CMAC_PATCH_VERSION (0)
+#define CRYPTO_CMAC_PATCH_VERSION (1)
 
 // Fixed constant
 #define CRYPTO_CMAC_AES_BLOCK_SIZE (16)
@@ -44,6 +44,7 @@ typedef enum {
     crypto_cmac_Ret_Ok = 0,
     crypto_cmac_Ret_InvalidArg,
     crypto_cmac_Ret_BufferTooSmall,
+    crypto_cmac_Ret_Error,
 } crypto_cmac_Ret;
 
 typedef enum {
@@ -79,26 +80,26 @@ typedef struct {
 //==================================================================================================
 extern crypto_cmac_Ret crypto_cmac_compute(
     crypto_cmac_KeyLen key_len,
-    const u8* data_ref,
+    const u8 *data_ref,
     u32 data_len,
-    const u8* key_ref,
-    u8* mac_mut,
+    const u8 *key_ref,
+    u8 *mac_mut,
     u32 mac_buf_size
 );
 
 extern crypto_cmac_Ret crypto_cmac_Handle_init(
-    crypto_cmac_Handle* self,
+    crypto_cmac_Handle *self,
     crypto_cmac_KeyLen key_len,
-    const u8* key_ref
+    const u8 *key_ref
 );
 extern crypto_cmac_Ret crypto_cmac_Handle_update(
-    crypto_cmac_Handle* self,
-    const u8* data_ref,
+    crypto_cmac_Handle *self,
+    const u8 *data_ref,
     u32 len
 );
 extern crypto_cmac_Ret crypto_cmac_Handle_finalize(
-    crypto_cmac_Handle* self,
-    u8* mac_mut,
+    crypto_cmac_Handle *self,
+    u8 *mac_mut,
     u32 mac_buf_size
 );
 
