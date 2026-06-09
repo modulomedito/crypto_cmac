@@ -3,7 +3,7 @@
 /// @author     modulomedito (chcchc1995@outlook.com)
 /// @brief      Define rust-like types for C language
 /// @copyright  Copyright (C) 2026. MIT License.
-/// @details    This is a header for defining types like rust.
+/// @details    This is a header for defining types like rust. C99 compatible.
 ///
 /// See https://github.com/modulomedito/rustlike_types
 //==================================================================================================
@@ -37,18 +37,19 @@ typedef int32_t i32;
 typedef int64_t i64;
 typedef float f32;
 typedef double f64;
-typedef uintptr_t usize;
-typedef intptr_t isize;
+typedef uintptr_t uptr;
+typedef intptr_t iptr;
+typedef ptrdiff_t isize;
+typedef size_t usize;
 typedef char ichar;
 typedef unsigned char uchar;
-typedef char* str;
 
 //==================================================================================================
 // PUBLIC DEFINE
 //==================================================================================================
-#define RUSTLIKE_TYPES__MAJOR_VERSION (0)
-#define RUSTLIKE_TYPES__MINOR_VERSION (1)
-#define RUSTLIKE_TYPES__PATCH_VERSION (0)
+#define RUSTLIKE_TYPES_MAJOR_VERSION (0)
+#define RUSTLIKE_TYPES_MINOR_VERSION (3)
+#define RUSTLIKE_TYPES_PATCH_VERSION (0)
 
 #ifndef bool
 #define bool bool_t

@@ -26,43 +26,45 @@ extern "C" {
 //==================================================================================================
 // PUBLIC DEFINE
 //==================================================================================================
-#define CRYPTO_CMAC__MAJOR_VERSION (0)
-#define CRYPTO_CMAC__MINOR_VERSION (2)
-#define CRYPTO_CMAC__PATCH_VERSION (0)
+#define CRYPTO_CMAC_MAJOR_VERSION (0)
+#define CRYPTO_CMAC_MINOR_VERSION (3)
+#define CRYPTO_CMAC_PATCH_VERSION (0)
 
 // Fixed constant
-#define CRYPTO_CMAC__AES_BLOCK_SIZE (16)
-#define CRYPTO_CMAC__MAC_SIZE (16)
+#define CRYPTO_CMAC_AES_BLOCK_SIZE (16)
+#define CRYPTO_CMAC_MAC_SIZE (16)
 
 // Use the maximum key size to support from AES128 to AES256
-#define CRYPTO_CMAC__MAX_KEY_SIZE (32)
+#define CRYPTO_CMAC_MAX_KEY_SIZE (32)
 
 //==================================================================================================
 // PUBLIC ENUM
 //==================================================================================================
 typedef enum {
-    crypto_cmac__KeyLen_128,
-    crypto_cmac__KeyLen_192,
-    crypto_cmac__KeyLen_256,
-} crypto_cmac__KeyLen;
+    crypto_cmac_Ret_Ok = 0,
+    crypto_cmac_Ret_InvalidArg,
+    crypto_cmac_Ret_BufferTooSmall,
+} crypto_cmac_Ret;
+
+typedef enum {
+    crypto_cmac_KeyLen_128,
+    crypto_cmac_KeyLen_192,
+    crypto_cmac_KeyLen_256,
+} crypto_cmac_KeyLen;
 
 //==================================================================================================
 // PUBLIC STRUCT
 //==================================================================================================
 typedef struct {
-    u8 key_buf[CRYPTO_CMAC__MAX_KEY_SIZE];
-    u8 state_buf[CRYPTO_CMAC__AES_BLOCK_SIZE];
-    u8 k1_buf[CRYPTO_CMAC__AES_BLOCK_SIZE];
-    u8 k2_buf[CRYPTO_CMAC__AES_BLOCK_SIZE];
-    u8 data_buf[CRYPTO_CMAC__AES_BLOCK_SIZE];
+    crypto_cmac_KeyLen key_len;
+    u8 key_buf[CRYPTO_CMAC_MAX_KEY_SIZE];
+    u8 state_buf[CRYPTO_CMAC_AES_BLOCK_SIZE];
+    u8 k1_buf[CRYPTO_CMAC_AES_BLOCK_SIZE];
+    u8 k2_buf[CRYPTO_CMAC_AES_BLOCK_SIZE];
+    u8 data_buf[CRYPTO_CMAC_AES_BLOCK_SIZE];
     u32 data_buf_len;
     u32 total_len;
-} crypto_cmac__Ctx;
-
-typedef struct {
-    crypto_cmac__KeyLen key_len;
-    crypto_cmac__Ctx ctx;
-} crypto_cmac__Handle;
+} crypto_cmac_Handle;
 
 //==================================================================================================
 // PUBLIC UNION
@@ -75,21 +77,30 @@ typedef struct {
 //==================================================================================================
 // PUBLIC FUNCTION DECLARATION
 //==================================================================================================
-extern i32 crypto_cmac__compute(
-    crypto_cmac__KeyLen key_len,
+extern crypto_cmac_Ret crypto_cmac_compute(
+    crypto_cmac_KeyLen key_len,
     const u8* data_ref,
     u32 data_len,
     const u8* key_ref,
-    u8* mac_mut
+    u8* mac_mut,
+    u32 mac_buf_size
 );
 
-extern i32 crypto_cmac__Handle_init(
-    crypto_cmac__Handle* self,
-    crypto_cmac__KeyLen key_len,
+extern crypto_cmac_Ret crypto_cmac_Handle_init(
+    crypto_cmac_Handle* self,
+    crypto_cmac_KeyLen key_len,
     const u8* key_ref
 );
-extern i32 crypto_cmac__Handle_update(crypto_cmac__Handle* self, const u8* data_ref, u32 len);
-extern i32 crypto_cmac__Handle_finalize(crypto_cmac__Handle* self, u8* mac_mut);
+extern crypto_cmac_Ret crypto_cmac_Handle_update(
+    crypto_cmac_Handle* self,
+    const u8* data_ref,
+    u32 len
+);
+extern crypto_cmac_Ret crypto_cmac_Handle_finalize(
+    crypto_cmac_Handle* self,
+    u8* mac_mut,
+    u32 mac_buf_size
+);
 
 //==================================================================================================
 // GUARD END

@@ -3,6 +3,9 @@
 An implementation of the Cipher-based Message Authentication Code (CMAC) algorithm,
 conforming to NIST SP 800-38B.
 This library supports AES-128, AES-192, and AES-256 for message authentication.
+Comply with MISRA-C:2023 rules.
+
+**Current version: 0.3.0**
 
 ## How To Use?
 
@@ -16,30 +19,65 @@ Copy all files in the `src` folder to your project, which are:
 
 ## Features
 
-- Support for multiple key lengths via `crypto_cmac__KeyLen`.
+- Support for three key lengths via `crypto_cmac_KeyLen` (`_128`, `_192`, `_256`).
 - Synchronous "one-shot" computation for simple use cases.
 - Object-oriented streaming API for processing large or fragmented data.
-- Dependency on `crypto_aes` library.
+- Returns a typed result via the `crypto_cmac_Ret` enum (not a bare `i32`).
+- Buffer-overflow-safe: every output parameter takes a `mac_buf_size` argument.
+- Dependency on `crypto_aes` library (v0.3.x).
 
 ## API Reference
+
+### Return Type
+
+All public functions return `crypto_cmac_Ret`:
+
+| Value                            | Meaning                            |
+| -------------------------------- | ---------------------------------- |
+| `crypto_cmac_Ret_Ok`             | Success                            |
+| `crypto_cmac_Ret_InvalidArg`     | Null pointer or invalid key length |
+| `crypto_cmac_Ret_BufferTooSmall` | Output buffer too small            |
 
 ### One-shot Computation
 
 ```c
-i32 crypto_cmac__compute(
-    crypto_cmac__KeyLen key_len,
+crypto_cmac_Ret crypto_cmac_compute(
+    crypto_cmac_KeyLen key_len,
     const u8* data_ref,
     u32 data_len,
     const u8* key_ref,
-    u8* mac_mut
+    u8* mac_mut,
+    u32 mac_buf_size
 );
 ```
 
+Computes the CMAC tag in a single call. `mac_buf_size` must be at least `CRYPTO_CMAC_MAC_SIZE` (16).
+
 ### Streaming API
 
-- `crypto_cmac__Handle_init`: Initialize the CMAC object with the secret key and length.
-- `crypto_cmac__Handle_update`: Process chunks of data incrementally.
-- `crypto_cmac__Handle_finalize`: Complete the calculation and retrieve the MAC tag.
+```c
+crypto_cmac_Ret crypto_cmac_Handle_init(
+    crypto_cmac_Handle* self,
+    crypto_cmac_KeyLen key_len,
+    const u8* key_ref
+);
+
+crypto_cmac_Ret crypto_cmac_Handle_update(
+    crypto_cmac_Handle* self,
+    const u8* data_ref,
+    u32 len
+);
+
+crypto_cmac_Ret crypto_cmac_Handle_finalize(
+    crypto_cmac_Handle* self,
+    u8* mac_mut,
+    u32 mac_buf_size
+);
+```
+
+- **`Handle_init`**: Initialize the CMAC object with the secret key and length.
+- **`Handle_update`**: Process chunks of data incrementally.
+- **`Handle_finalize`**: Complete the calculation and retrieve the MAC tag. `mac_buf_size` must be at least `CRYPTO_CMAC_MAC_SIZE` (16).
 
 ## Usage Example
 
@@ -48,16 +86,21 @@ i32 crypto_cmac__compute(
 
 u8 key_buf[16] = { /* ... */ };
 u8 data_buf[] = { /* ... */ };
-u8 cmac_buf[16];
+u8 cmac_buf[CRYPTO_CMAC_MAC_SIZE];
 
 // One-shot
-crypto_cmac__compute(crypto_cmac__KeyLen_128, data_buf, sizeof(data_buf), key_buf, cmac_buf);
+crypto_cmac_compute(
+    crypto_cmac_KeyLen_128,
+    data_buf, sizeof(data_buf),
+    key_buf,
+    cmac_buf, sizeof(cmac_buf)
+);
 
 // Or Streaming
-crypto_cmac__Handle handle;
-crypto_cmac__Handle_init(&handle, crypto_cmac__KeyLen_128, key_buf);
-crypto_cmac__Handle_update(&handle, data_buf, sizeof(data_buf));
-crypto_cmac__Handle_finalize(&handle, cmac_buf);
+crypto_cmac_Handle handle;
+crypto_cmac_Handle_init(&handle, crypto_cmac_KeyLen_128, key_buf);
+crypto_cmac_Handle_update(&handle, data_buf, sizeof(data_buf));
+crypto_cmac_Handle_finalize(&handle, cmac_buf, sizeof(cmac_buf));
 ```
 
 ## Testing

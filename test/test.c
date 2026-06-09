@@ -18,16 +18,16 @@
 //==================================================================================================
 // PRIVATE DEFINE
 //==================================================================================================
-#define TEST__CONCAT_HELPER(a, b) a##b
-#define TEST__CONCAT(a, b) TEST__CONCAT_HELPER(a, b)
+#define TEST_CONCAT_HELPER(a, b) a##b
+#define TEST_CONCAT(a, b) TEST_CONCAT_HELPER(a, b)
 
-#define TEST__RUN(mod)                                                                             \
+#define TEST_RUN(mod)                                                                              \
     do {                                                                                           \
-        extern i32 TEST__CONCAT(mod, __test)(void);                                                \
-        i32 result = TEST__CONCAT(mod, __test)();                                                  \
+        extern i32 TEST_CONCAT(mod, _test)(void);                                                  \
+        i32 result = TEST_CONCAT(mod, _test)();                                                    \
         if (result != 0) {                                                                         \
             printf("Test " #mod " FAILED! (Failed line = %d)\n", result);                          \
-            test__failed_cnt++;                                                                    \
+            test_failed_cnt++;                                                                     \
         }                                                                                          \
     } while (0)
 
@@ -63,12 +63,12 @@
 // PUBLIC FUNCTION DEFINITION
 //==================================================================================================
 i32 main(void) {
-    u32 test__failed_cnt = 0;
+    u32 test_failed_cnt = 0;
 
-    TEST__RUN(crypto_aes);
-    TEST__RUN(crypto_cmac);
+    TEST_RUN(crypto_aes);
+    TEST_RUN(crypto_cmac);
 
-    if (test__failed_cnt == 0) {
+    if (test_failed_cnt == 0) {
         printf("All tests passed!\n");
         return 0;
     } else {
