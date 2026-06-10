@@ -255,16 +255,15 @@ crypto_cmac_Ret crypto_cmac_Handle_finalize(
         mac_buf_size
     );
 
-    switch (ret) {
-    case crypto_aes_Ret_InvalidArg:
+    if (ret == crypto_aes_Ret_InvalidArg) {
         return crypto_cmac_Ret_InvalidArg;
-    case crypto_aes_Ret_BufferTooSmall:
+    } else if (ret == crypto_aes_Ret_BufferTooSmall) {
         return crypto_cmac_Ret_BufferTooSmall;
-    case crypto_aes_Ret_CipherTextNotAligned:
+    } else if (ret == crypto_aes_Ret_CipherTextNotAligned) {
         return crypto_cmac_Ret_Error;
-    default:
-        return crypto_cmac_Ret_Ok;
     }
+
+    return crypto_cmac_Ret_Ok;
 }
 
 //==================================================================================================
